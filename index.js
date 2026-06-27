@@ -267,7 +267,49 @@ async function run() {
     });
 
 
-    
+    // update seller product
+    app.patch('/api/seller-edit', verifyToken, verifySeller, async (req, res) => {
+      try {
+        const id = req.query.id;
+
+        if (!id) {
+          return res.status(400).json({ message: "Product id is required" });
+        }
+
+        const { title, category, condition, price, description, status } = req.body;
+
+        const updatedDoc = {
+          $set: {
+            title,
+            category,
+            condition,
+            price: Number(price),
+            description,
+            status,
+          },
+        };
+
+        const result = await productsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          updatedDoc
+        );
+
+        if (result.modifiedCount === 0) {
+          return res.status(404).json({ message: "No product updated" });
+        }
+
+        res.send({
+          success: true,
+          message: "Product updated successfully",
+          result,
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+
+  
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
