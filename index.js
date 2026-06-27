@@ -352,7 +352,33 @@ async function run() {
       }
     })
 
-  
+    // get seller orders
+    app.get('/api/seller-orders', verifyToken, verifySeller, async (req, res) => {
+      try {
+        const id = req.query.sellerId;
+        if (!id) {
+          return res.status(400).json({ message: "product id is required" })
+        }
+        const query = {
+
+        }
+        if (id) {
+          query["sellerInfo.userId"] = id
+        }
+
+
+        const result = await ordersCollection.find(query).toArray();
+        res.send(result);
+
+      }
+      catch (err) {
+        console.log(err)
+        res.send('server problem')
+
+      }
+    })
+
+    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
