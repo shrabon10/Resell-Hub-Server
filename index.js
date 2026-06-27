@@ -378,7 +378,50 @@ async function run() {
       }
     })
 
-    
+    // update order status
+    app.patch('/seller-order-status', verifyToken, verifySeller, async (req, res) => {
+      const id = req.query.id;
+      const status = req.query.orderStatus;
+      console.log(id, status);
+
+      if (!id) {
+        return res.status(400).json({ message: "Order id is required" })
+      }
+      const query = {
+
+      }
+      if (id) {
+        query._id = new ObjectId(id)
+      }
+      const updateDoc = {
+        $set: {
+          orderStatus: status
+        }
+      }
+      const result = await ordersCollection.updateOne(query, updateDoc)
+      res.send(result);
+    })
+
+
+    // post data in wishlist
+    app.post('/api/wish-list', async (req, res) => {
+      const data = req.body;
+
+      const existQuery = {
+        userId: data.userId,
+        productId: data.productId
+      };
+
+      const isExist = await wishListCollection.findOne(existQuery);
+
+
+      if (isExist) {
+        return res.json({ meg: 'Product is already in WishList' });
+      }
+      const result = await wishListCollection.insertOne(data);
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
