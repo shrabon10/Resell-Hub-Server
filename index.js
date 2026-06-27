@@ -155,6 +155,35 @@ async function run() {
       res.send({ products: result, page: Number(page), totalPage });
     })
 
+    // get single product by id
+
+    app.get('/api/product/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id)
+      }
+      const result = await productsCollection.findOne(query);
+      res.send(result)
+
+    })
+
+    // post products
+    app.post('/api/products', verifyToken, verifySeller, async (req, res) => {
+      const data = req.body;
+      const result = await productsCollection.insertOne(data);
+      res.send(result);
+    })
+
+
+
+
+    // Send a ping to confirm a successful connection
+    // await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
+  }
 }
 run().catch(console.dir);
 
