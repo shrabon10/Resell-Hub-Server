@@ -28,7 +28,6 @@ const client = new MongoClient(uri, {
   }
 });
 
-
 const JWKS = createRemoteJWKSet(new URL(`${process.env.NEXT_CLIENT_SITE}/api/auth/jwks`))
 
 const verifyToken = async (req, res, next) => {
@@ -174,6 +173,57 @@ async function run() {
       res.send(result);
     })
 
+
+    // get seller information
+    app.get('/api/seller', verifyToken, verifySeller, async (req, res) => {
+      const id = req.query?.id;
+      const query = {};
+
+      if (id) {
+        query["sellerInfo.userId"] = id;
+      }
+
+      const totalProducts = await productsCollection.countDocuments(query);
+      const totalSales = await ordersCollection.countDocuments(query);
+      const totalOrders = await ordersCollection.countDocuments(query);
+
+      const [stats] = await ordersCollection.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: null,
+            totalSales: { $sum: 1 },
+            totalRevenue: { $sum: "$price" },
+            pendingOrders: {
+              $sum: {
+                $cond: [{ $eq: ["$orderStatus", "processing"] }, 1, 0],
+              },
+            },
+            processingOrders: {
+              $sum: {
+                $cond: [{ $eq: ["$orderStatus", "pending"] }, 1, 0],
+              },
+            },
+
+            deliveredOrders: {
+              $sum: {
+                $cond: [{ $eq: ["$orderStatus", "delivered"] }, 1, 0],
+              },
+            },
+          },
+        },
+      ]).toArray();
+
+      res.send({
+        totalProducts,
+        totalSales: stats?.totalSales || 0,
+        totalRevenue: stats?.totalRevenue || 0,
+        totalOrders,
+        pendingOrders: stats?.pendingOrders || 0,
+        processingOrders: stats?.processingOrders || 0,
+        deliveredOrders: stats?.deliveredOrders || 0,
+      });
+    });
 
 
 
