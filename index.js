@@ -485,8 +485,70 @@ async function run() {
 
     })
 
-    /
+    // get admin dashboard details
+    app.get('/admin-dashboard', verifyToken, verifyAdmin, async (req, res) => {
+      try {
+        const totalUser = await userCollection.countDocuments();
+        const totalProduct = await productsCollection.countDocuments();
+        const totalOrder = await ordersCollection.countDocuments();
 
+        const revenueResult = await ordersCollection.aggregate([
+          {
+            $group: {
+              _id: null,
+              totalRevenue: {
+                $sum: "$price"
+              }
+            }
+          }
+        ]).toArray();
+
+        const totalRevenue = revenueResult[0]?.totalRevenue || 0;
+
+        res.send({
+          totalUser,
+          totalProduct,
+          totalOrder,
+          totalRevenue
+        });
+
+      } catch (error) {
+        console.log(error);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
+
+
+    // users
+    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+
+    // block users and active
+    app.patch('/block-user', verifyToken, verifyAdmin, async (req, res) => {
+      console.log(req.body);
+      const { id, userStatus } = req.body;
+      const query = {}
+      if (id) {
+        query._id = new ObjectId(id)
+      }
+
+      const updatedDoc = {
+        $set: {
+          status: userStatus
+        }
+      }
+
+      const result = await userCollection.updateOne(query, updatedDoc);
+      res.send(result);
+
+
+
+    })
+    // update role
+
+ 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
