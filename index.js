@@ -423,6 +423,27 @@ async function run() {
     })
 
 
+    // get wish-list data
+    app.get('/api/wish-list', verifyToken, verifyBuyer, async (req, res) => {
+      const query = {
+
+      }
+      if (req.query) {
+        query.userId = req.query.userId
+      }
+      const result = await wishListCollection.find(query).toArray();
+      res.send(result);
+
+    })
+
+    // get featured products
+    app.get('/api/featuredProduct', async (req, res) => {
+      const result = await productsCollection.find().limit(4).toArray()
+      res.send(result);
+    })
+
+
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
