@@ -227,6 +227,48 @@ async function run() {
 
 
 
+
+    app.get('/api/seller-product', verifyToken, async (req, res) => {
+      try {
+        const query = {};
+
+        // seller products
+        if (req.query.id) {
+          query["sellerInfo.userId"] = req.query.id;
+        }
+
+        // search by title
+        if (req.query.search) {
+          query.title = {
+            $regex: req.query.search,
+            $options: "i",
+          };
+        }
+
+        // filter by status
+        if (req.query.status && req.query.status !== "all") {
+          query.status = req.query.status;
+        }
+
+        let cursor = productsCollection.find(query);
+
+        // sort by category
+        if (req.query.category && req.query.category !== "all") {
+          query.category = req.query.category;
+        }
+
+        const result = await cursor.toArray();
+
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+        res.status(500).send({ message: "Server error" });
+      }
+    });
+
+
+    
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
