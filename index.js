@@ -548,7 +548,124 @@ async function run() {
     })
     // update role
 
- 
+    app.patch('/update-role', verifyToken, verifyAdmin, async (req, res) => {
+      console.log(req.body);
+      const { id, newRole } = req.body;
+      const query = {}
+      if (id) {
+        query._id = new ObjectId(id)
+      }
+
+      const updatedDoc = {
+        $set: {
+          role: newRole
+        }
+      }
+
+      const result = await userCollection.updateOne(query, updatedDoc);
+      res.send(result);
+
+
+
+    })
+
+
+    // delete user
+    app.delete('/delete-user', verifyToken, verifyAdmin, async (req, res) => {
+      const query = {
+
+      }
+      if (!req.query.id) {
+        return res.status(400).json({ message: "id is required for delete user" })
+      }
+      if (req.query.id) {
+        query._id = new ObjectId(req.query.id)
+      }
+
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+
+    })
+
+    // delete wishlist items
+
+    app.delete('/api/wish-list', verifyToken, verifyBuyer, async (req, res) => {
+      const id = req.query?._id
+      const query = {
+        _id: new ObjectId(id)
+      }
+
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
+    // delete product by admin
+    app.delete('/delete-product', verifyToken, verifyAdmin, async (req, res) => {
+      const id = req.query.id
+      console.log(id);
+      if (!id) {
+        return res.status(400).json({ message: "product id is required for delete" })
+
+      }
+      const query = {
+
+      }
+      if (id) {
+        query._id = new ObjectId(id)
+      }
+      const result = await productsCollection.deleteOne(query);
+
+      res.send(result);
+    })
+
+
+    app.patch('/updateStatus', verifyToken, verifyAdmin, async (req, res) => {
+      const { id, status } = req.body
+      console.log(req.body);
+
+      console.log(id);
+      if (!id) {
+        return res.status(400).json({ message: "product id is required for delete" })
+
+      }
+      const query = {
+
+      }
+      if (id) {
+        query._id = new ObjectId(id)
+      }
+      const updatedDoc = {
+        $set: {
+          status: status
+        }
+      }
+      const result = await productsCollection.updateOne(query, updatedDoc);
+      res.send(result)
+    })
+
+
+    app.get('/all-orders', verifyToken, verifyAdmin, async (req, res) => {
+      const result = await ordersCollection.find().toArray();
+      res.send(result);
+    })
+
+    // update order status
+    app.patch('/update-order-status', verifyToken, verifyAdmin, async (req, res) => {
+      const { id, data } = req.body
+      const filter = {
+        _id: new ObjectId(id)
+      }
+      const updatedDoc = {
+        $set: {
+          orderStatus: data
+        }
+      }
+      const result = await ordersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
