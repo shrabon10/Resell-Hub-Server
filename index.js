@@ -309,6 +309,49 @@ async function run() {
       }
     });
 
+    // buying infos and metadata
+    app.post('/api/order', async (req, res) => {
+      const data = req.body;
+      const existQuery = {
+        transactionId: data.transactionId
+      }
+
+      const isExist = await ordersCollection.findOne(existQuery);
+
+      if (isExist) {
+        return res.json({ meg: 'order is already in pending' });
+      }
+
+      const updatedData = {
+        ...data,
+        createdAt: new Date()
+      }
+      const result = await ordersCollection.insertOne(updatedData)
+      res.send(result)
+    })
+
+    // delete seller products
+    app.delete('/api/seller-delete', verifyToken, verifySeller, async (req, res) => {
+      try {
+        const id = req.query.id;
+        if (!id) {
+          return res.status(400).json({ message: "product id is required" })
+        }
+        const query = {
+          _id: new ObjectId(id)
+        }
+
+        const result = await productsCollection.deleteOne(query);
+        res.send(result)
+
+      }
+      catch (err) {
+        console.log(err)
+        res.send('server problem')
+
+      }
+    })
+
   
 
     // Send a ping to confirm a successful connection
